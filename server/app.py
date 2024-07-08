@@ -47,10 +47,42 @@ class ShowArticle(Resource):
             return make_response(article_json, 200)
 
         return {'message': 'Maximum pageview limit reached'}, 401
+    
+class Login(Resource):
 
+    def post(self):
+        username = request.json.get('username')
+        #password = request.json.get('password')
+
+        user = User.query.filter(User.username == username).first()
+
+        if user:
+            session['user_id'] = user.id
+            return {'id': user.id, 'username': user.username}, 200
+        else:
+            return {'message': 'Invalid credentials'}, 401
+        
+class Logout(Resource):
+
+    def delete(self):
+        session['user_id'] = None
+        return {}, 204
+    
+class CheckSession(Resource):
+
+    def get(self):
+        if session['user_id']:
+            return {'id': session['user_id']}, 200
+        else:
+            return {}, 401
+        
+    
 api.add_resource(ClearSession, '/clear')
 api.add_resource(IndexArticle, '/articles')
 api.add_resource(ShowArticle, '/articles/<int:id>')
+api.add_resource(Login, '/login')
+api.add_resource(Logout, '/logout')
+api.add_resource(CheckSession, '/check_session')
 
 
 if __name__ == '__main__':
